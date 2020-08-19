@@ -2,12 +2,20 @@ package com.wix.reactnativenotifications.core.notification;
 
 import android.os.Bundle;
 
+import org.json.JSONObject;
+
 public class PushNotificationProps {
 
     protected Bundle mBundle;
 
+    private JSONObject dataJson;
+
     public PushNotificationProps(Bundle bundle) {
         mBundle = bundle;
+        String json = mBundle.getString("data");
+        try {
+            dataJson = new JSONObject(json);
+        } catch (Exception exception) { }
     }
 
     public String getTitle() {
@@ -18,12 +26,24 @@ public class PushNotificationProps {
         return getBundleStringFirstNotNull("gcm.notification.body", "body");
     }
 
+    public String getSound() {
+        return getBundleStringFirstNotNull("gcm.notification.sound", "sound");
+    }
+
+    public String getPushType() {
+        String result = "";
+        try {
+            result = dataJson.getString("type");
+        } catch (Exception exc) { }
+        return result;
+    }
+
     public Bundle asBundle() {
         return (Bundle) mBundle.clone();
     }
 
     public boolean isFirebaseBackgroundPayload() {
-        return mBundle.containsKey("google.message_id");
+        return mBundle.containsKey("google.message_id") && !mBundle.containsKey("title");
     }
 
     @Override
