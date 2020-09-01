@@ -1,6 +1,7 @@
 package com.wix.reactnativenotifications;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +28,8 @@ import com.wix.reactnativenotifications.core.notification.PushNotificationProps;
 import com.wix.reactnativenotifications.core.notificationdrawer.IPushNotificationsDrawer;
 import com.wix.reactnativenotifications.core.notificationdrawer.PushNotificationsDrawer;
 import com.wix.reactnativenotifications.fcm.FcmInstanceIdRefreshHandlerService;
+
+import java.util.List;
 
 import static com.wix.reactnativenotifications.Defs.LOGTAG;
 
@@ -142,8 +145,28 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
 
     protected void startFcmIntentService(String extraFlag) {
         final Context appContext = getReactApplicationContext().getApplicationContext();
+        if (!isAppOnForeground(appContext)) return;
+        if(BuildConfig.DEBUG) Log.d(LOGTAG, "startFcmIntentService");
         final Intent tokenFetchIntent = new Intent(appContext, FcmInstanceIdRefreshHandlerService.class);
         tokenFetchIntent.putExtra(extraFlag, true);
         appContext.startService(tokenFetchIntent);
+    }
+
+    private boolean isAppOnForeground(Context context) {
+        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> appProcesses =
+                activityManager.getRunningAppProcesses();
+        if (appProcesses == null) {
+            return false;
+        }
+        final String packageName = context.getPackageName();
+        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+            if (appProcess.importance ==
+                    ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                    appProcess.processName.equals(packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
