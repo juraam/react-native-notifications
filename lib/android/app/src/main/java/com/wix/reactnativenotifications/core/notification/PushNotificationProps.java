@@ -30,14 +30,6 @@ public class PushNotificationProps {
         return getBundleStringFirstNotNull("gcm.notification.sound", "sound");
     }
 
-    public String getPushType() {
-        String result = "";
-        try {
-            result = dataJson.getString("type");
-        } catch (Exception exc) { }
-        return result;
-    }
-
     public Bundle asBundle() {
         return (Bundle) mBundle.clone();
     }
