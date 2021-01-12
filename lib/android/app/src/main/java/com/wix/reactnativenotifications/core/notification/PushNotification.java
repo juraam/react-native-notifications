@@ -147,7 +147,7 @@ public class PushNotification implements IPushNotification {
     protected Notification.Builder getNotificationBuilder(PendingIntent intent) {
 
         String CHANNEL_ID = "channel_01";
-        String CHANNEL_NAME = "Channel Name";
+        String CHANNEL_NAME = "Push Notifications";
 
         final Notification.Builder notification = new Notification.Builder(mContext)
                 .setContentTitle(mNotificationProps.getTitle())
