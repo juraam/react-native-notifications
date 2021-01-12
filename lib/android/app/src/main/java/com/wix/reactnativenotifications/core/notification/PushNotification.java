@@ -24,6 +24,8 @@ import com.wix.reactnativenotifications.core.JsIOHelper;
 import com.wix.reactnativenotifications.core.NotificationIntentAdapter;
 import com.wix.reactnativenotifications.core.ProxyService;
 
+import java.util.stream.Stream;
+
 import static com.wix.reactnativenotifications.Defs.NOTIFICATION_OPENED_EVENT_NAME;
 import static com.wix.reactnativenotifications.Defs.NOTIFICATION_RECEIVED_EVENT_NAME;
 
@@ -153,20 +155,26 @@ public class PushNotification implements IPushNotification {
                 .setContentIntent(intent)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setAutoCancel(true);
-        String pushType = mNotificationProps.getPushType();
-        if (pushType.equals("START_SOS")) {
-            int resourceId = getAppResourceId("sos", "raw");
-            Uri soundUri = new Uri.Builder()
-                    .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                    .authority(mContext.getResources().getResourcePackageName(resourceId))
-                    .appendPath(mContext.getResources().getResourceTypeName(resourceId))
-                    .appendPath(mContext.getResources().getResourceEntryName(resourceId))
-                    .build();
-            try {
-                Ringtone r = RingtoneManager.getRingtone(mContext, soundUri);
-                r.play();
-            } catch (Exception e) {
-                e.printStackTrace();
+        String sound = mNotificationProps.getSound();
+        if (sound != null) {
+            sound = sound.split("\\.")[0];
+            int resourceId = getAppResourceId(sound, "raw");
+            if (resourceId > 0) {
+                Uri soundUri = new Uri.Builder()
+                        .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                        .authority(mContext.getResources().getResourcePackageName(resourceId))
+                        .appendPath(mContext.getResources().getResourceTypeName(resourceId))
+                        .appendPath(mContext.getResources().getResourceEntryName(resourceId))
+                        .build();
+                try {
+                    Ringtone r = RingtoneManager.getRingtone(mContext, soundUri);
+                    AudioAttributes.Builder builder = new AudioAttributes.Builder();
+                    builder.setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION);
+                    r.setAudioAttributes(builder.build());
+                    r.play();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
         setUpIcon(notification);
